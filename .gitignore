@@ -44,3 +44,7 @@ next-env.d.ts
 # Claude Code
 CLAUDE.local.md
 .claude/settings.local.json
+
+# Prototypes (開発初期の試作ファイル)
+prototypes*.html
+public/prototypes*.html
