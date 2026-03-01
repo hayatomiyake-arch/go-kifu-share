@@ -93,18 +93,18 @@ export default function GoBoard({
               y1={padding}
               x2={padding + i * cellSize}
               y2={padding + (boardSize - 1) * cellSize}
-              stroke="#5a4020"
-              strokeWidth={i === 0 || i === boardSize - 1 ? 1.5 : 0.8}
-              opacity={0.7}
+              stroke="#4a3518"
+              strokeWidth={i === 0 || i === boardSize - 1 ? 2 : 1}
+              shapeRendering="crispEdges"
             />
             <line
               x1={padding}
               y1={padding + i * cellSize}
               x2={padding + (boardSize - 1) * cellSize}
               y2={padding + i * cellSize}
-              stroke="#5a4020"
-              strokeWidth={i === 0 || i === boardSize - 1 ? 1.5 : 0.8}
-              opacity={0.7}
+              stroke="#4a3518"
+              strokeWidth={i === 0 || i === boardSize - 1 ? 2 : 1}
+              shapeRendering="crispEdges"
             />
           </g>
         ))}
@@ -116,8 +116,7 @@ export default function GoBoard({
             cx={padding + x * cellSize}
             cy={padding + y * cellSize}
             r={3.5}
-            fill="#5a4020"
-            opacity={0.7}
+            fill="#4a3518"
           />
         ))}
 
