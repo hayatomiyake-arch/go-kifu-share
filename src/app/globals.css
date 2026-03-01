@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
+/* Warm Craft テーマ: カスタムプロパティ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg: #f5f0e8;
+  --color-bg-warm: #faf6f0;
+  --color-card: rgba(255, 252, 245, 0.85);
+  --color-card-solid: #fffcf5;
+  --color-text: #3d2b1f;
+  --color-text-secondary: #7a6555;
+  --color-text-muted: #a89585;
+  --color-accent: #b8860b;
+  --color-accent-light: #d4a853;
+  --color-accent-hover: #9a7209;
+  --color-border: #e8ddd0;
+  --color-border-light: #f0e8dc;
+  --color-surface: rgba(255, 250, 240, 0.6);
+  --color-surface-hover: rgba(255, 250, 240, 0.9);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* システムセリフ体フォント */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+  background-color: #f0e6d6;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 10% 20%, rgba(200, 160, 100, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 45% at 85% 15%, rgba(180, 140, 80, 0.25) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 50% at 40% 80%, rgba(210, 170, 110, 0.30) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 35% at 90% 75%, rgba(190, 155, 95, 0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 35% at 55% 40%, rgba(220, 185, 130, 0.18) 0%, transparent 55%);
+  background-attachment: fixed;
+  color: var(--color-text);
+}
+
+/* Warm Craft 用のユーティリティクラス */
+@layer utilities {
+  .bg-warm-card {
+    background-color: var(--color-card);
+    backdrop-filter: blur(12px);
+  }
+  .bg-warm-card-solid {
+    background-color: var(--color-card-solid);
+  }
+  .bg-warm-surface {
+    background-color: var(--color-surface);
+  }
+  .border-warm {
+    border-color: var(--color-border);
+  }
+  .border-warm-light {
+    border-color: var(--color-border-light);
+  }
+  .text-warm {
+    color: var(--color-text);
+  }
+  .text-warm-secondary {
+    color: var(--color-text-secondary);
+  }
+  .text-warm-muted {
+    color: var(--color-text-muted);
+  }
+  .text-accent {
+    color: var(--color-accent);
+  }
+  .bg-accent {
+    background-color: var(--color-accent);
+  }
+  .bg-accent-hover {
+    background-color: var(--color-accent-hover);
+  }
 }
