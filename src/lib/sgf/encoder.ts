@@ -9,7 +9,7 @@ function posToSgf(pos: Position): string {
 
 /** ノードをSGF文字列に変換（再帰） */
 function nodeToSgf(node: GameNode, isRoot: boolean): string {
-  let sgf = ';';
+  let sgf = isRoot ? '' : ';';
 
   if (isRoot) {
     // ルートノードにはプロパティを付加しない（親で設定済み）

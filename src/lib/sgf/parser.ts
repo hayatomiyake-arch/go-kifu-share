@@ -38,54 +38,65 @@ interface ParseResult {
 
 /** SGFのツリー構造をパース */
 function parseTree(sgf: string, index: number): { result: ParseResult[]; nextIndex: number } {
-  const nodes: ParseResult[] = [];
+  const topNodes: ParseResult[] = [];
   let currentNode: ParseResult | null = null;
-  let nodeText = '';
+  let propText = '';
   let i = index;
 
   while (i < sgf.length) {
     const ch = sgf[i];
 
-    if (ch === '(') {
-      // サブツリー開始
-      const { result: children, nextIndex } = parseTree(sgf, i + 1);
+    if (ch === ';') {
+      // 現在のノードにテキストを保存
+      if (currentNode && propText.trim()) {
+        currentNode.nodeText = propText.trim();
+      }
+      propText = '';
+
+      // 連続セミコロン対応（;;）: 空ノードが直前にある場合はスキップ
+      if (currentNode && currentNode.nodeText === '' && currentNode.children.length === 0) {
+        i++;
+        continue;
+      }
+
+      const newNode: ParseResult = { nodeText: '', children: [] };
       if (currentNode) {
-        currentNode.children.push(...children);
+        currentNode.children.push(newNode);
+      } else {
+        topNodes.push(newNode);
+      }
+      currentNode = newNode;
+      i++;
+    } else if (ch === '(') {
+      // サブツリー開始 - まず現在のテキストを保存
+      if (currentNode && propText.trim()) {
+        currentNode.nodeText = propText.trim();
+      }
+      propText = '';
+
+      const { result: subNodes, nextIndex } = parseTree(sgf, i + 1);
+      if (currentNode) {
+        currentNode.children.push(...subNodes);
+      } else {
+        topNodes.push(...subNodes);
       }
       i = nextIndex;
     } else if (ch === ')') {
       // サブツリー終了
-      if (nodeText.trim()) {
-        if (currentNode) {
-          currentNode.children.push({ nodeText: nodeText.trim(), children: [] });
-        } else {
-          nodes.push({ nodeText: nodeText.trim(), children: [] });
-        }
+      if (currentNode && propText.trim()) {
+        currentNode.nodeText = propText.trim();
       }
-      return { result: nodes, nextIndex: i + 1 };
-    } else if (ch === ';') {
-      // 新しいノード
-      if (nodeText.trim() && currentNode) {
-        const newNode: ParseResult = { nodeText: nodeText.trim(), children: [] };
-        currentNode.children.push(newNode);
-        currentNode = newNode;
-      } else if (nodeText.trim()) {
-        currentNode = { nodeText: nodeText.trim(), children: [] };
-        nodes.push(currentNode);
-      }
-      nodeText = '';
-      if (!currentNode) {
-        currentNode = { nodeText: '', children: [] };
-        nodes.push(currentNode);
-      }
-      i++;
+      return { result: topNodes, nextIndex: i + 1 };
     } else {
-      nodeText += ch;
+      propText += ch;
       i++;
     }
   }
 
-  return { result: nodes, nextIndex: i };
+  if (currentNode && propText.trim()) {
+    currentNode.nodeText = propText.trim();
+  }
+  return { result: topNodes, nextIndex: i };
 }
 
 let parseNodeIdCounter = 0;

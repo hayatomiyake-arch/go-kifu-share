@@ -73,8 +73,12 @@ export default function SharedGamePage({ params }: { params: Promise<{ shareId: 
     downloadSgf(game);
   }, [game]);
 
+  const [urlCopied, setUrlCopied] = useState(false);
+
   const handleCopyUrl = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
+    setUrlCopied(true);
+    setTimeout(() => setUrlCopied(false), 2000);
   }, []);
 
   if (loading) {
@@ -158,9 +162,14 @@ export default function SharedGamePage({ params }: { params: Promise<{ shareId: 
           </button>
           <button
             onClick={handleCopyUrl}
-            className="flex-1 py-3 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+            className="flex-1 py-3 text-sm font-medium rounded-xl border transition-all"
+            style={{
+              backgroundColor: urlCopied ? 'rgba(34, 120, 60, 0.08)' : undefined,
+              borderColor: urlCopied ? 'rgba(34, 120, 60, 0.4)' : undefined,
+              color: urlCopied ? '#2d7a3e' : undefined,
+            }}
           >
-            URLをコピー
+            {urlCopied ? 'コピーしました' : 'URLをコピー'}
           </button>
         </div>
       </div>

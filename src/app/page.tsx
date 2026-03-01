@@ -35,6 +35,8 @@ export default function HomePage() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [sgfCopied, setSgfCopied] = useState(false);
 
   const lastMove = currentNode?.move?.position || null;
 
@@ -120,11 +122,15 @@ export default function HomePage() {
   const handleCopySgf = useCallback(() => {
     const sgf = gameToSgf(game);
     navigator.clipboard.writeText(sgf);
+    setSgfCopied(true);
+    setTimeout(() => setSgfCopied(false), 2000);
   }, [game]);
 
   const handleCopyShareUrl = useCallback(() => {
     if (shareUrl) {
       navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   }, [shareUrl]);
 
@@ -296,12 +302,12 @@ export default function HomePage() {
               onClick={handleCopySgf}
               className="flex-1 py-3 text-sm font-medium rounded-xl border transition-all"
               style={{
-                backgroundColor: 'var(--color-card-solid)',
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text)',
+                backgroundColor: sgfCopied ? 'var(--color-surface)' : 'var(--color-card-solid)',
+                borderColor: sgfCopied ? 'rgba(34, 120, 60, 0.4)' : 'var(--color-border)',
+                color: sgfCopied ? '#2d7a3e' : 'var(--color-text)',
               }}
             >
-              SGFコピー
+              {sgfCopied ? 'コピーしました' : 'SGFコピー'}
             </button>
           </div>
         </div>
@@ -333,9 +339,9 @@ export default function HomePage() {
               <button
                 onClick={handleCopyShareUrl}
                 className="px-4 py-2 text-xs font-medium text-white rounded-lg transition-all"
-                style={{ backgroundColor: '#2d7a3e' }}
+                style={{ backgroundColor: copied ? '#1a5c2a' : '#2d7a3e' }}
               >
-                コピー
+                {copied ? 'コピーしました' : 'コピー'}
               </button>
             </div>
           </div>
