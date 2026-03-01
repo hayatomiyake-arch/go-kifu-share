@@ -1,0 +1,30 @@
+name: Quarterly Cleanup Old Games
+
+on:
+  schedule:
+    # 3ヶ月に1回（1月・4月・7月・10月の1日 0:00 UTC / 日本時間 9:00）
+    - cron: '0 0 1 1,4,7,10 *'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete games older than 6 months
+        run: |
+          response=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            "https://go-kifu-share.vercel.app/api/cleanup?secret=${{ secrets.CLEANUP_SECRET }}")
+
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | head -n -1)
+
+          echo "Response status: $http_code"
+          echo "Response body: $body"
+
+          if [ "$http_code" = "200" ]; then
+            echo "Cleanup completed successfully!"
+          else
+            echo "Cleanup failed with status $http_code"
+            exit 1
+          fi
