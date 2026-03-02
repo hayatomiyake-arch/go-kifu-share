@@ -1,8 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
+
+  const handleNewGame = () => {
+    if (isHome) {
+      // トップページにいる場合：確認してからリロード
+      const ok = window.confirm('現在の棋譜を破棄して新しい棋譜を始めますか？');
+      if (ok) {
+        window.location.reload();
+      }
+    }
+    // 他のページの場合はLink遷移でトップに戻る
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b" style={{
       backgroundColor: 'rgba(250, 246, 240, 0.85)',
@@ -26,15 +41,27 @@ export default function Header() {
         </Link>
 
         <nav className="flex items-center gap-4">
-          <Link
-            href="/"
-            className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
-            style={{ backgroundColor: 'var(--color-accent)' }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--color-accent)')}
-          >
-            新しい棋譜
-          </Link>
+          {isHome ? (
+            <button
+              onClick={handleNewGame}
+              className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm cursor-pointer"
+              style={{ backgroundColor: 'var(--color-accent)' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--color-accent)')}
+            >
+              新しい棋譜
+            </button>
+          ) : (
+            <Link
+              href="/"
+              className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm"
+              style={{ backgroundColor: 'var(--color-accent)' }}
+              onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--color-accent)')}
+            >
+              新しい棋譜
+            </Link>
+          )}
         </nav>
       </div>
     </header>
