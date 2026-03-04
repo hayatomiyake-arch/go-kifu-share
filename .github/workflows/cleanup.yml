@@ -11,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete games older than 6 months
+        env:
+          CLEANUP_SECRET: ${{ secrets.CLEANUP_SECRET }}
         run: |
-          response=$(curl -s -w "\n%{http_code}" \
+          echo "Calling cleanup API..."
+          http_code=$(curl -s -o /tmp/response.json -w "%{http_code}" \
             -X POST \
-            "https://go-kifu-share.vercel.app/api/cleanup?secret=${{ secrets.CLEANUP_SECRET }}")
-
-          http_code=$(echo "$response" | tail -1)
-          body=$(echo "$response" | head -n -1)
+            "https://go-kifu-share.vercel.app/api/cleanup?secret=${CLEANUP_SECRET}")
 
           echo "Response status: $http_code"
-          echo "Response body: $body"
+          echo "Response body: $(cat /tmp/response.json)"
 
           if [ "$http_code" = "200" ]; then
             echo "Cleanup completed successfully!"
