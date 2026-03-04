@@ -46,7 +46,7 @@ export default function GoBoard({
     <div className="w-full sm:inline-block touch-none select-none">
       <svg
         viewBox={`0 0 ${boardPixelSize} ${boardPixelSize}`}
-        className="w-full max-w-[min(100vw,560px)] sm:max-w-[min(90vw,560px)] aspect-square rounded-lg shadow-lg"
+        className="w-full max-w-[min(98vw,560px)] sm:max-w-[min(90vw,560px)] aspect-square rounded-lg shadow-lg"
       >
         <defs>
           {/* 碁盤のグラデーション */}
