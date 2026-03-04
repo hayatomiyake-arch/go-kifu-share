@@ -17,7 +17,8 @@ jobs:
           echo "Calling cleanup API..."
           http_code=$(curl -s -o /tmp/response.json -w "%{http_code}" \
             -X POST \
-            "https://go-kifu-share.vercel.app/api/cleanup?secret=${CLEANUP_SECRET}")
+            -H "x-cleanup-secret: ${CLEANUP_SECRET}" \
+            "https://go-kifu-share.vercel.app/api/cleanup")
 
           echo "Response status: $http_code"
           echo "Response body: $(cat /tmp/response.json)"

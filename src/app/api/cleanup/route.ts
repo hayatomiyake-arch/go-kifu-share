@@ -9,9 +9,10 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
  */
 export async function POST(request: Request) {
   try {
-    // シークレットによる認証
+    // シークレットによる認証（ヘッダーまたはクエリパラメータ）
+    const authHeader = request.headers.get('x-cleanup-secret');
     const { searchParams } = new URL(request.url);
-    const secret = searchParams.get('secret');
+    const secret = authHeader || searchParams.get('secret');
     const cleanupSecret = process.env.CLEANUP_SECRET;
 
     if (!cleanupSecret || secret !== cleanupSecret) {
