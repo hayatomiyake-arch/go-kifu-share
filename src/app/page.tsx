@@ -176,7 +176,7 @@ export default function HomePage() {
       </div>
 
       {/* コントロールエリア */}
-      <div className="flex-1 w-full lg:max-w-sm space-y-4">
+      <div className="flex-1 w-full lg:max-w-sm space-y-4 px-2 sm:px-0">
         {/* モード切替 */}
         <div
           className="flex gap-1 rounded-xl p-1"
