@@ -43,7 +43,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         state.game,
         state.viewState.currentNodeId,
         action.position,
-        state.viewState.nextColor
+        state.viewState.nextColor,
+        true // 記録モード: 新しい手をメインラインとして挿入
       );
       if (!result) return state; // 着手禁止
 
@@ -62,7 +63,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         state.game,
         state.viewState.currentNodeId,
         null,
-        state.viewState.nextColor
+        state.viewState.nextColor,
+        true // 記録モード: パスもメインラインとして挿入
       );
       if (!result) return state;
 

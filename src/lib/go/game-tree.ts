@@ -60,7 +60,8 @@ export function addMove(
   game: GameRecord,
   parentNodeId: string,
   position: Position | null, // null = パス
-  color: StoneColor
+  color: StoneColor,
+  asMainLine = false // trueの場合、既存の分岐より前（メインライン）に挿入
 ): { game: GameRecord; newNodeId: string } | null {
   const parentNode = findNode(game.rootNode, parentNodeId);
   if (!parentNode) return null;
@@ -107,7 +108,11 @@ export function addMove(
     boardState: newBoardState,
   };
 
-  parentNode.children.push(newNode);
+  if (asMainLine && parentNode.children.length > 0) {
+    parentNode.children.unshift(newNode);
+  } else {
+    parentNode.children.push(newNode);
+  }
 
   return { game, newNodeId: newNode.id };
 }
