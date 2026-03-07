@@ -159,6 +159,16 @@ export function getViewState(game: GameRecord, nodeId: string): GameViewState | 
   };
 }
 
+/** 指定ノードの子ノードからtargetIdを削除 */
+export function removeChildNode(root: GameNode, parentId: string, targetId: string): boolean {
+  const parent = findNode(root, parentId);
+  if (!parent) return false;
+  const idx = parent.children.findIndex(c => c.id === targetId);
+  if (idx === -1) return false;
+  parent.children.splice(idx, 1);
+  return true;
+}
+
 /** 検討図の分岐を追加（既存のノードから別の手を打つ） */
 export function addVariation(
   game: GameRecord,

@@ -213,6 +213,7 @@ export default function HomePage() {
           hasChildren={currentNode ? currentNode.children.length > 0 : false}
           hasPrevious={viewState.currentPath.length > 1}
           hasVariations={currentNode ? currentNode.children.length > 1 : false}
+          isRecordMode={mode === 'record'}
           onFirst={goFirst}
           onPrevious={goPrevious}
           onNext={goNext}

@@ -134,6 +134,7 @@ export default function SharedGamePage({ params }: { params: Promise<{ shareId: 
           hasChildren={currentNode ? currentNode.children.length > 0 : false}
           hasPrevious={viewState.currentPath.length > 1}
           hasVariations={currentNode ? currentNode.children.length > 1 : false}
+          isRecordMode={false}
           onFirst={goFirst}
           onPrevious={goPrevious}
           onNext={goNext}

@@ -2,7 +2,7 @@
 
 import { useCallback, useReducer } from 'react';
 import { BoardSize, GameRecord, GameViewState, Position, StoneColor } from '@/types/go';
-import { createNewGame, addMove, getViewState, findNode, addVariation } from './game-tree';
+import { createNewGame, addMove, getViewState, findNode, addVariation, removeChildNode } from './game-tree';
 import { oppositeColor } from './rules';
 
 interface GameState {
@@ -39,12 +39,18 @@ function createInitialState(
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'PLACE_STONE': {
+      // 記録モード: 現在ノードの既存の子を全削除（上書き記録）
+      const currentNodeForPlace = findNode(state.game.rootNode, state.viewState.currentNodeId);
+      if (currentNodeForPlace) {
+        currentNodeForPlace.children = [];
+      }
+
       const result = addMove(
         state.game,
         state.viewState.currentNodeId,
         action.position,
         state.viewState.nextColor,
-        true // 記録モード: 新しい手をメインラインとして挿入
+        false // 子はクリア済みなのでメインライン指定不要
       );
       if (!result) return state; // 着手禁止
 
@@ -59,12 +65,18 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'PASS': {
+      // 記録モード: 現在ノードの既存の子を全削除（上書き記録）
+      const currentNodeForPass = findNode(state.game.rootNode, state.viewState.currentNodeId);
+      if (currentNodeForPass) {
+        currentNodeForPass.children = [];
+      }
+
       const result = addMove(
         state.game,
         state.viewState.currentNodeId,
         null,
         state.viewState.nextColor,
-        true // 記録モード: パスもメインラインとして挿入
+        false
       );
       if (!result) return state;
 
@@ -79,11 +91,19 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'UNDO': {
-      if (state.history.length <= 1) return state;
-      const newHistory = state.history.slice(0, -1);
-      const previousNodeId = newHistory[newHistory.length - 1];
-      const newViewState = getViewState(state.game, previousNodeId);
+      if (state.viewState.currentPath.length <= 1) return state;
+      const currentId = state.viewState.currentNodeId;
+      const parentId = state.viewState.currentPath[state.viewState.currentPath.length - 2];
+
+      // ツリーから現在のノードを削除（真のやり直し）
+      removeChildNode(state.game.rootNode, parentId, currentId);
+
+      const newViewState = getViewState(state.game, parentId);
       if (!newViewState) return state;
+
+      // history からも現在ノードを除外
+      const newHistory = state.history.filter(id => id !== currentId);
+      if (newHistory.length === 0) newHistory.push(state.game.rootNode.id);
 
       return { ...state, viewState: newViewState, history: newHistory };
     }
