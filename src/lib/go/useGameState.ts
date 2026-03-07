@@ -2,7 +2,7 @@
 
 import { useCallback, useReducer } from 'react';
 import { BoardSize, GameRecord, GameViewState, Position, StoneColor } from '@/types/go';
-import { createNewGame, addMove, getViewState, findNode, addVariation } from './game-tree';
+import { createNewGame, addMove, getViewState, findNode, addVariation, removeChildNode, getPathToNode } from './game-tree';
 import { oppositeColor } from './rules';
 
 interface GameState {
@@ -20,6 +20,8 @@ type GameAction =
   | { type: 'GO_LAST' }
   | { type: 'GO_NEXT' }
   | { type: 'GO_PREVIOUS' }
+  | { type: 'SELECT_BRANCH'; branchIndex: number }
+  | { type: 'DELETE_BRANCH'; nodeId: string }
   | { type: 'ADD_VARIATION'; position: Position; comment?: string }
   | { type: 'LOAD_GAME'; game: GameRecord }
   | { type: 'NEW_GAME'; boardSize: BoardSize; playerBlack: string; playerWhite: string; komi: number }
@@ -39,11 +41,26 @@ function createInitialState(
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'PLACE_STONE': {
+      // 同じ位置の既存の子がある場合はそこへ移動（重複防止）
+      const currentNodeForPlace = findNode(state.game.rootNode, state.viewState.currentNodeId);
+      if (currentNodeForPlace) {
+        const existing = currentNodeForPlace.children.find(
+          c => c.move?.position?.x === action.position.x && c.move?.position?.y === action.position.y
+        );
+        if (existing) {
+          const existingView = getViewState(state.game, existing.id);
+          if (existingView) {
+            return { ...state, viewState: existingView, history: [...state.history, existing.id] };
+          }
+        }
+      }
+
       const result = addMove(
         state.game,
         state.viewState.currentNodeId,
         action.position,
-        state.viewState.nextColor
+        state.viewState.nextColor,
+        true // 新しい手をメインラインとして挿入
       );
       if (!result) return state; // 着手禁止
 
@@ -62,7 +79,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         state.game,
         state.viewState.currentNodeId,
         null,
-        state.viewState.nextColor
+        state.viewState.nextColor,
+        true // メインラインとして挿入
       );
       if (!result) return state;
 
@@ -77,13 +95,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'UNDO': {
-      if (state.history.length <= 1) return state;
-      const newHistory = state.history.slice(0, -1);
-      const previousNodeId = newHistory[newHistory.length - 1];
-      const newViewState = getViewState(state.game, previousNodeId);
+      if (state.viewState.currentPath.length <= 1) return state;
+      const parentId = state.viewState.currentPath[state.viewState.currentPath.length - 2];
+      const newViewState = getViewState(state.game, parentId);
       if (!newViewState) return state;
-
-      return { ...state, viewState: newViewState, history: newHistory };
+      return { ...state, viewState: newViewState, history: [...state.history, parentId] };
     }
 
     case 'NAVIGATE_TO': {
@@ -128,6 +144,32 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const newViewState = getViewState(state.game, parentId);
       if (!newViewState) return state;
       return { ...state, viewState: newViewState, history: [...state.history, parentId] };
+    }
+
+    case 'SELECT_BRANCH': {
+      const branchParent = findNode(state.game.rootNode, state.viewState.currentNodeId);
+      if (!branchParent || action.branchIndex >= branchParent.children.length) return state;
+      const selectedChild = branchParent.children[action.branchIndex];
+      const newViewState = getViewState(state.game, selectedChild.id);
+      if (!newViewState) return state;
+      return { ...state, viewState: newViewState, history: [...state.history, selectedChild.id] };
+    }
+
+    case 'DELETE_BRANCH': {
+      // 指定ノードの親を見つけて、そのノードを削除
+      const pathToDel = getPathToNode(state.game.rootNode, action.nodeId);
+      if (!pathToDel || pathToDel.length < 2) return state;
+      const delParentId = pathToDel[pathToDel.length - 2];
+      removeChildNode(state.game.rootNode, delParentId, action.nodeId);
+
+      // 現在表示中のノードが削除された分岐内の場合は親に戻る
+      const currentPath = getPathToNode(state.game.rootNode, state.viewState.currentNodeId);
+      if (!currentPath) {
+        const parentView = getViewState(state.game, delParentId);
+        if (!parentView) return state;
+        return { ...state, viewState: parentView, history: [...state.history, delParentId] };
+      }
+      return state;
     }
 
     case 'ADD_VARIATION': {
@@ -224,6 +266,14 @@ export function useGameState(
     dispatch({ type: 'NAVIGATE_TO', nodeId });
   }, []);
 
+  const selectBranch = useCallback((branchIndex: number) => {
+    dispatch({ type: 'SELECT_BRANCH', branchIndex });
+  }, []);
+
+  const deleteBranch = useCallback((nodeId: string) => {
+    dispatch({ type: 'DELETE_BRANCH', nodeId });
+  }, []);
+
   const addVariationMove = useCallback((pos: Position, comment?: string) => {
     dispatch({ type: 'ADD_VARIATION', position: pos, comment });
   }, []);
@@ -260,6 +310,8 @@ export function useGameState(
     goNext,
     goPrevious,
     navigateTo,
+    selectBranch,
+    deleteBranch,
     addVariationMove,
     loadGame,
     newGame,

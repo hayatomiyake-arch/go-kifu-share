@@ -10,6 +10,7 @@ interface GameControlsProps {
   hasChildren: boolean;
   hasPrevious: boolean;
   hasVariations: boolean;
+  isRecordMode: boolean;
   onFirst: () => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -34,6 +35,8 @@ export default function GameControls({
   capturedWhite,
   hasChildren,
   hasPrevious,
+  hasVariations,
+  isRecordMode,
   onFirst,
   onPrevious,
   onNext,
@@ -94,6 +97,22 @@ export default function GameControls({
             </button>
           ))}
         </div>
+
+        {/* 分岐インジケーター */}
+        {hasVariations && (
+          <div
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
+            style={{
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              color: '#3b82f6',
+            }}
+          >
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clipRule="evenodd" />
+            </svg>
+            分岐あり（下の分岐パネルで選択）
+          </div>
+        )}
 
         {/* パス・一手戻す */}
         <div className="flex justify-center gap-2">
