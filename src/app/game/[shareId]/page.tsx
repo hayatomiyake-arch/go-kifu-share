@@ -33,6 +33,7 @@ export default function SharedGamePage({ params }: { params: Promise<{ shareId: 
     goLast,
     goNext,
     goPrevious,
+    selectBranch,
     loadGame,
   } = useGameState();
 
@@ -144,6 +145,67 @@ export default function SharedGamePage({ params }: { params: Promise<{ shareId: 
           playerBlack={game.playerBlack}
           playerWhite={game.playerWhite}
         />
+
+        {/* 分岐表示 */}
+        {currentNode && currentNode.children.length > 1 && (
+          <div
+            className="rounded-xl p-4 shadow-sm border"
+            style={{
+              backgroundColor: 'var(--color-card)',
+              backdropFilter: 'blur(12px)',
+              borderColor: 'var(--color-border-light)',
+            }}
+          >
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-muted)' }}>
+              分岐 ({currentNode.children.length}つ)
+            </p>
+            <div className="space-y-1.5">
+              {currentNode.children.map((child, i) => {
+                let depth = 0;
+                let node = child;
+                while (node) {
+                  depth++;
+                  node = node.children.length > 0 ? node.children[0] : null as never;
+                  if (!node) break;
+                }
+                const posLabel = child.move?.position
+                  ? `${String.fromCharCode(65 + (child.move.position.x >= 8 ? child.move.position.x + 1 : child.move.position.x))}${game.boardSize - child.move.position.y}`
+                  : 'パス';
+                const colorLabel = child.move?.color === 'black' ? '黒' : '白';
+
+                return (
+                  <button
+                    key={child.id}
+                    onClick={() => selectBranch(i)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-lg transition-all text-left"
+                    style={{
+                      backgroundColor: i === 0 ? 'rgba(59, 130, 246, 0.1)' : 'var(--color-surface)',
+                      color: 'var(--color-text)',
+                      borderLeft: i === 0 ? '3px solid #3b82f6' : '3px solid transparent',
+                    }}
+                  >
+                    <div
+                      className={`w-3.5 h-3.5 rounded-full flex-shrink-0 ${
+                        child.move?.color === 'black'
+                          ? 'bg-gray-900'
+                          : 'bg-white border border-gray-400'
+                      }`}
+                    />
+                    <span className="font-medium">
+                      {i === 0 ? '本筋' : `変化${i}`}
+                    </span>
+                    <span style={{ color: 'var(--color-text-muted)' }}>
+                      {colorLabel} {posLabel}
+                    </span>
+                    <span className="ml-auto" style={{ color: 'var(--color-text-muted)' }}>
+                      {depth}手
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* コメント */}
         {currentNode?.comment && (

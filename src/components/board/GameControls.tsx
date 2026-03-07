@@ -35,6 +35,7 @@ export default function GameControls({
   capturedWhite,
   hasChildren,
   hasPrevious,
+  hasVariations,
   isRecordMode,
   onFirst,
   onPrevious,
@@ -97,19 +98,19 @@ export default function GameControls({
           ))}
         </div>
 
-        {/* 上書き警告 */}
-        {isRecordMode && hasChildren && (
+        {/* 分岐インジケーター */}
+        {hasVariations && (
           <div
             className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs"
             style={{
-              backgroundColor: 'rgba(220, 120, 20, 0.1)',
-              color: '#c47a15',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              color: '#3b82f6',
             }}
           >
             <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clipRule="evenodd" />
             </svg>
-            この先に記録済みの手があります（着手で上書き）
+            分岐あり（下の分岐パネルで選択）
           </div>
         )}
 

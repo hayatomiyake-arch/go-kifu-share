@@ -19,6 +19,8 @@ export default function HomePage() {
     goLast,
     goNext,
     goPrevious,
+    selectBranch,
+    deleteBranch,
     newGame,
     updateMetadata,
   } = useGameState();
@@ -66,6 +68,15 @@ export default function HomePage() {
     setSaving(true);
     try {
       const sgf = gameToSgf(game);
+
+      // メインライン（children[0]を辿る）の総手数を計算
+      let mainLineCount = 0;
+      let node = game.rootNode;
+      while (node.children.length > 0) {
+        node = node.children[0];
+        if (node.move) mainLineCount++;
+      }
+
       const response = await fetch('/api/game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,7 +86,7 @@ export default function HomePage() {
           playerBlack: game.playerBlack,
           playerWhite: game.playerWhite,
           komi: game.komi,
-          moveCount: viewState.moveNumber,
+          moveCount: mainLineCount,
         }),
       });
 
@@ -92,7 +103,7 @@ export default function HomePage() {
     } finally {
       setSaving(false);
     }
-  }, [game, viewState.moveNumber]);
+  }, [game]);
 
   // SGFダウンロードダイアログを開く
   const openSgfDialog = useCallback(() => {
@@ -224,7 +235,7 @@ export default function HomePage() {
           playerWhite={game.playerWhite}
         />
 
-        {/* 分岐表示 */}
+        {/* 分岐表示（SmartGo風） */}
         {currentNode && currentNode.children.length > 1 && (
           <div
             className="rounded-xl p-4 shadow-sm border"
@@ -234,25 +245,72 @@ export default function HomePage() {
               borderColor: 'var(--color-border-light)',
             }}
           >
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--color-text-muted)' }}>
-              分岐（検討図）
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {currentNode.children.map((child, i) => (
-                <button
-                  key={child.id}
-                  onClick={() => goNext()}
-                  className="px-3 py-1 text-xs rounded-lg transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text)',
-                  }}
-                >
-                  {child.move?.position
-                    ? `${i === 0 ? '本筋' : `変化${i}`}: ${String.fromCharCode(65 + (child.move.position.x >= 8 ? child.move.position.x + 1 : child.move.position.x))}${game.boardSize - child.move.position.y}`
-                    : `パス`}
-                </button>
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                分岐 ({currentNode.children.length}つ)
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              {currentNode.children.map((child, i) => {
+                // この分岐の手数を計算（本筋を辿る）
+                let depth = 0;
+                let node = child;
+                while (node) {
+                  depth++;
+                  node = node.children.length > 0 ? node.children[0] : null as never;
+                  if (!node) break;
+                }
+                const posLabel = child.move?.position
+                  ? `${String.fromCharCode(65 + (child.move.position.x >= 8 ? child.move.position.x + 1 : child.move.position.x))}${game.boardSize - child.move.position.y}`
+                  : 'パス';
+                const colorLabel = child.move?.color === 'black' ? '黒' : '白';
+
+                return (
+                  <div key={child.id} className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => selectBranch(i)}
+                      className="flex-1 flex items-center gap-2 px-3 py-2 text-xs rounded-lg transition-all text-left"
+                      style={{
+                        backgroundColor: i === 0 ? 'rgba(59, 130, 246, 0.1)' : 'var(--color-surface)',
+                        color: 'var(--color-text)',
+                        borderLeft: i === 0 ? '3px solid #3b82f6' : '3px solid transparent',
+                      }}
+                    >
+                      <div
+                        className={`w-3.5 h-3.5 rounded-full flex-shrink-0 ${
+                          child.move?.color === 'black'
+                            ? 'bg-gray-900'
+                            : 'bg-white border border-gray-400'
+                        }`}
+                      />
+                      <span className="font-medium">
+                        {i === 0 ? '本筋' : `変化${i}`}
+                      </span>
+                      <span style={{ color: 'var(--color-text-muted)' }}>
+                        {colorLabel} {posLabel}
+                      </span>
+                      <span className="ml-auto" style={{ color: 'var(--color-text-muted)' }}>
+                        {depth}手
+                      </span>
+                    </button>
+                    {mode === 'record' && i > 0 && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`変化${i}を削除しますか？`))
+                            deleteBranch(child.id);
+                        }}
+                        className="p-1.5 rounded-lg transition-all opacity-40 hover:opacity-100"
+                        style={{ color: 'var(--color-text-muted)' }}
+                        title="この分岐を削除"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
