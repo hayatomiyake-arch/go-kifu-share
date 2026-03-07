@@ -5,6 +5,7 @@ import { BoardSize, Position } from '@/types/go';
 import { useGameState } from '@/lib/go/useGameState';
 import GoBoard from '@/components/board/GoBoard';
 import GameControls from '@/components/board/GameControls';
+import GameTreeView from '@/components/board/GameTreeView';
 import { gameToSgf, downloadSgf } from '@/lib/sgf/encoder';
 
 export default function HomePage() {
@@ -19,6 +20,7 @@ export default function HomePage() {
     goLast,
     goNext,
     goPrevious,
+    navigateTo,
     selectBranch,
     deleteBranch,
     newGame,
@@ -235,7 +237,15 @@ export default function HomePage() {
           playerWhite={game.playerWhite}
         />
 
-        {/* 分岐表示（SmartGo風） */}
+        {/* ツリービュー（SmartGo風） */}
+        <GameTreeView
+          rootNode={game.rootNode}
+          currentNodeId={viewState.currentNodeId}
+          currentPath={viewState.currentPath}
+          onNodeClick={navigateTo}
+        />
+
+        {/* 分岐表示 */}
         {currentNode && currentNode.children.length > 1 && (
           <div
             className="rounded-xl p-4 shadow-sm border"
