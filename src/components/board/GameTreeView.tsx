@@ -69,7 +69,9 @@ export default function GameTreeView({ rootNode, currentNodeId, currentPath, onN
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const layout = useMemo(() => buildTreeLayout(rootNode), [rootNode]);
+  // rootNodeはミューテーションされるため参照が変わらない。
+  // currentNodeIdを依存に含めて手が進むたびに再計算する。
+  const layout = useMemo(() => buildTreeLayout(rootNode), [rootNode, currentNodeId]);
 
   const maxCol = useMemo(() => Math.max(...layout.map(n => n.col), 0), [layout]);
   const maxRow = useMemo(() => Math.max(...layout.map(n => n.row), 0), [layout]);
