@@ -27,8 +27,6 @@ export default function HomePage() {
     updateMetadata,
   } = useGameState();
 
-  const [mode, setMode] = useState<'record' | 'review'>('record');
-
   // SGFダウンロード用メタデータダイアログ
   const [showSgfDialog, setShowSgfDialog] = useState(false);
   const [playerBlackInput, setPlayerBlackInput] = useState('');
@@ -46,11 +44,9 @@ export default function HomePage() {
 
   const handleIntersectionClick = useCallback(
     (pos: Position) => {
-      if (mode === 'record') {
-        placeStone(pos);
-      }
+      placeStone(pos);
     },
-    [mode, placeStone]
+    [placeStone]
   );
 
   const handleBoardSizeChange = useCallback(
@@ -184,39 +180,12 @@ export default function HomePage() {
           nextColor={viewState.nextColor}
           lastMove={lastMove}
           onIntersectionClick={handleIntersectionClick}
-          interactive={mode === 'record'}
+          interactive={true}
         />
       </div>
 
       {/* コントロールエリア */}
       <div className="flex-1 w-full lg:max-w-sm space-y-4 px-2 sm:px-0">
-        {/* モード切替 */}
-        <div
-          className="flex gap-1 rounded-xl p-1"
-          style={{ backgroundColor: 'var(--color-surface)' }}
-        >
-          {(['record', 'review'] as const).map(m => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className="flex-1 py-2 text-sm font-medium rounded-lg transition-all"
-              style={
-                mode === m
-                  ? {
-                      backgroundColor: 'var(--color-card-solid)',
-                      color: 'var(--color-text)',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                    }
-                  : {
-                      color: 'var(--color-text-muted)',
-                    }
-              }
-            >
-              {m === 'record' ? '記録モード' : '閲覧モード'}
-            </button>
-          ))}
-        </div>
-
         {/* ゲームコントロール */}
         <GameControls
           moveNumber={viewState.moveNumber}
@@ -226,7 +195,7 @@ export default function HomePage() {
           hasChildren={currentNode ? currentNode.children.length > 0 : false}
           hasPrevious={viewState.currentPath.length > 1}
           hasVariations={currentNode ? currentNode.children.length > 1 : false}
-          isRecordMode={mode === 'record'}
+          isRecordMode={true}
           onFirst={goFirst}
           onPrevious={goPrevious}
           onNext={goNext}
@@ -322,7 +291,7 @@ export default function HomePage() {
                         {depth}手
                       </span>
                     </button>
-                    {mode === 'record' && i > 0 && (
+                    {i > 0 && (
                       <button
                         onClick={() => {
                           if (window.confirm(`変化${i}を削除しますか？`))
