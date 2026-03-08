@@ -238,12 +238,31 @@ export default function HomePage() {
         />
 
         {/* ツリービュー（SmartGo風） */}
-        <GameTreeView
-          rootNode={game.rootNode}
-          currentNodeId={viewState.currentNodeId}
-          currentPath={viewState.currentPath}
-          onNodeClick={navigateTo}
-        />
+        {viewState.moveNumber > 0 && (
+          <div
+            className="rounded-xl p-3 shadow-sm border"
+            style={{
+              backgroundColor: 'var(--color-card)',
+              backdropFilter: 'blur(12px)',
+              borderColor: 'var(--color-border-light)',
+            }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+                棋譜ツリー
+              </p>
+              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                {viewState.moveNumber}手目
+              </p>
+            </div>
+            <GameTreeView
+              rootNode={game.rootNode}
+              currentNodeId={viewState.currentNodeId}
+              currentPath={viewState.currentPath}
+              onNodeClick={navigateTo}
+            />
+          </div>
+        )}
 
         {/* 分岐表示 */}
         {currentNode && currentNode.children.length > 1 && (
