@@ -343,6 +343,42 @@ export default function HomePage() {
           >
             {saving ? '保存中...' : '共有URLを発行'}
           </button>
+
+          {/* 共有URL表示（SGFボタンより上に配置） */}
+          {showShareDialog && shareUrl && (
+            <div
+              className="rounded-xl p-4 border"
+              style={{
+                backgroundColor: 'rgba(34, 120, 60, 0.06)',
+                borderColor: 'rgba(34, 120, 60, 0.2)',
+              }}
+            >
+              <p className="text-sm font-medium mb-2" style={{ color: '#2d7a3e' }}>
+                共有URLが発行されました
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1 px-3 py-2 text-xs rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--color-card-solid)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text)',
+                  }}
+                />
+                <button
+                  onClick={handleCopyShareUrl}
+                  className="px-4 py-2 text-xs font-medium text-white rounded-lg transition-all"
+                  style={{ backgroundColor: copied ? '#1a5c2a' : '#2d7a3e' }}
+                >
+                  {copied ? 'コピーしました' : 'コピー'}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2">
             <button
               onClick={openSgfDialog}
@@ -368,41 +404,6 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-
-        {/* 共有URL表示 */}
-        {showShareDialog && shareUrl && (
-          <div
-            className="rounded-xl p-4 border"
-            style={{
-              backgroundColor: 'rgba(34, 120, 60, 0.06)',
-              borderColor: 'rgba(34, 120, 60, 0.2)',
-            }}
-          >
-            <p className="text-sm font-medium mb-2" style={{ color: '#2d7a3e' }}>
-              共有URLが発行されました
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={shareUrl}
-                className="flex-1 px-3 py-2 text-xs rounded-lg border"
-                style={{
-                  backgroundColor: 'var(--color-card-solid)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text)',
-                }}
-              />
-              <button
-                onClick={handleCopyShareUrl}
-                className="px-4 py-2 text-xs font-medium text-white rounded-lg transition-all"
-                style={{ backgroundColor: copied ? '#1a5c2a' : '#2d7a3e' }}
-              >
-                {copied ? 'コピーしました' : 'コピー'}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* SGFダウンロード用メタデータ入力モーダル */}
