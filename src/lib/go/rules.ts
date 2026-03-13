@@ -136,6 +136,104 @@ export function isKo(
   return true;
 }
 
+/** 置き碁の置き石位置を取得（1〜9子） */
+export function getHandicapPositions(size: BoardSize, handicap: number): Position[] {
+  if (handicap < 2 || handicap > 9) return [];
+
+  // 各盤面サイズの星の位置（置き石に使用する順序）
+  // 順序: 右上、左下、右下、左上、（中央系）
+  const corners: Record<BoardSize, { edge: number; center: number }> = {
+    9: { edge: 2, center: 4 },
+    13: { edge: 3, center: 6 },
+    19: { edge: 3, center: 9 },
+  };
+
+  const { edge, center } = corners[size];
+  const far = size - 1 - edge;
+
+  // SGF標準の置き石順序
+  const positions: Position[] = [
+    { x: far, y: edge },    // 右上
+    { x: edge, y: far },    // 左下
+    { x: far, y: far },     // 右下
+    { x: edge, y: edge },   // 左上
+  ];
+
+  // 5子以上は辺の星も追加
+  if (size === 9) {
+    // 9路は5子で天元のみ追加
+    positions.push(
+      { x: center, y: center }, // 天元
+    );
+    // 6子以上は辺の星
+    positions.push(
+      { x: edge, y: center },   // 左辺
+      { x: far, y: center },    // 右辺
+    );
+    positions.push(
+      { x: center, y: edge },   // 上辺
+      { x: center, y: far },    // 下辺
+    );
+  } else {
+    // 13路・19路
+    // 5子は天元
+    positions.push(
+      { x: center, y: center }, // 天元
+    );
+    // 6子は左右辺
+    positions.push(
+      { x: edge, y: center },   // 左辺
+      { x: far, y: center },    // 右辺
+    );
+    // 8子は上下辺
+    positions.push(
+      { x: center, y: edge },   // 上辺
+      { x: center, y: far },    // 下辺
+    );
+    // 9子は天元（再度）
+  }
+
+  // 5子の場合: 4隅 + 天元
+  // 6子の場合: 4隅 + 左辺 + 右辺（天元なし）
+  // 7子の場合: 4隅 + 左辺 + 右辺 + 天元
+  // 8子の場合: 4隅 + 左辺 + 右辺 + 上辺 + 下辺（天元なし）
+  // 9子の場合: 4隅 + 左辺 + 右辺 + 上辺 + 下辺 + 天元
+
+  if (handicap <= 4) {
+    return positions.slice(0, handicap);
+  }
+
+  if (handicap === 5) {
+    // 4隅 + 天元
+    return [...positions.slice(0, 4), positions[4]];
+  }
+  if (handicap === 6) {
+    // 4隅 + 左辺 + 右辺
+    return [...positions.slice(0, 4), positions[5], positions[6]];
+  }
+  if (handicap === 7) {
+    // 4隅 + 左辺 + 右辺 + 天元
+    return [...positions.slice(0, 4), positions[4], positions[5], positions[6]];
+  }
+  if (handicap === 8) {
+    // 4隅 + 左辺 + 右辺 + 上辺 + 下辺
+    return [...positions.slice(0, 4), positions[5], positions[6], positions[7], positions[8]];
+  }
+  // 9子: 全部
+  return positions.slice(0, 9);
+}
+
+/** 盤面に置き石を配置 */
+export function placeHandicapStones(board: IntersectionState[][], size: BoardSize, handicap: number): IntersectionState[][] {
+  if (handicap < 2) return board;
+  const newBoard = cloneBoard(board);
+  const positions = getHandicapPositions(size, handicap);
+  for (const pos of positions) {
+    newBoard[pos.y][pos.x] = 'black';
+  }
+  return newBoard;
+}
+
 /** 星の位置を取得（盤面上の目印） */
 export function getStarPoints(size: BoardSize): Position[] {
   if (size === 9) {

@@ -24,16 +24,17 @@ type GameAction =
   | { type: 'DELETE_BRANCH'; nodeId: string }
   | { type: 'ADD_VARIATION'; position: Position; comment?: string }
   | { type: 'LOAD_GAME'; game: GameRecord }
-  | { type: 'NEW_GAME'; boardSize: BoardSize; playerBlack: string; playerWhite: string; komi: number }
+  | { type: 'NEW_GAME'; boardSize: BoardSize; playerBlack: string; playerWhite: string; komi: number; handicap: number }
   | { type: 'UPDATE_METADATA'; playerBlack?: string; playerWhite?: string; result?: string };
 
 function createInitialState(
   boardSize: BoardSize = 19,
   playerBlack = '',
   playerWhite = '',
-  komi = 6.5
+  komi = 6.5,
+  handicap = 0
 ): GameState {
-  const game = createNewGame(boardSize, playerBlack, playerWhite, komi);
+  const game = createNewGame(boardSize, playerBlack, playerWhite, komi, handicap);
   const viewState = getViewState(game, game.rootNode.id)!;
   return { game, viewState, history: [game.rootNode.id] };
 }
@@ -207,7 +208,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'NEW_GAME': {
-      return createInitialState(action.boardSize, action.playerBlack, action.playerWhite, action.komi);
+      return createInitialState(action.boardSize, action.playerBlack, action.playerWhite, action.komi, action.handicap);
     }
 
     case 'UPDATE_METADATA': {
@@ -283,8 +284,8 @@ export function useGameState(
   }, []);
 
   const newGame = useCallback(
-    (boardSize: BoardSize, playerBlack: string, playerWhite: string, komi: number) => {
-      dispatch({ type: 'NEW_GAME', boardSize, playerBlack, playerWhite, komi });
+    (boardSize: BoardSize, playerBlack: string, playerWhite: string, komi: number, handicap = 0) => {
+      dispatch({ type: 'NEW_GAME', boardSize, playerBlack, playerWhite, komi, handicap });
     },
     []
   );

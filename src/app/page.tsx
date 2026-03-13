@@ -27,6 +27,9 @@ export default function HomePage() {
     updateMetadata,
   } = useGameState();
 
+  // ハンディキャップ選択
+  const [handicap, setHandicap] = useState(0);
+
   // SGFダウンロード用メタデータダイアログ
   const [showSgfDialog, setShowSgfDialog] = useState(false);
   const [playerBlackInput, setPlayerBlackInput] = useState('');
@@ -56,9 +59,23 @@ export default function HomePage() {
         const ok = window.confirm('盤面サイズを変更すると、現在の棋譜がリセットされます。よろしいですか？');
         if (!ok) return;
       }
-      newGame(size, game.playerBlack, game.playerWhite, game.komi);
+      newGame(size, game.playerBlack, game.playerWhite, game.komi, handicap);
     },
-    [game.boardSize, game.playerBlack, game.playerWhite, game.komi, viewState.moveNumber, newGame]
+    [game.boardSize, game.playerBlack, game.playerWhite, game.komi, handicap, viewState.moveNumber, newGame]
+  );
+
+  const handleHandicapChange = useCallback(
+    (newHandicap: number) => {
+      if (newHandicap === handicap) return;
+      if (viewState.moveNumber > 0) {
+        const ok = window.confirm('置き碁設定を変更すると、現在の棋譜がリセットされます。よろしいですか？');
+        if (!ok) return;
+      }
+      setHandicap(newHandicap);
+      const komi = newHandicap >= 2 ? 0.5 : 6.5;
+      newGame(game.boardSize, game.playerBlack, game.playerWhite, komi, newHandicap);
+    },
+    [handicap, viewState.moveNumber, game.boardSize, game.playerBlack, game.playerWhite, newGame]
   );
 
   // 共有URL発行（ダイアログなし、即座に発行）
@@ -172,6 +189,33 @@ export default function HomePage() {
               {size}路
             </button>
           ))}
+        </div>
+
+        {/* 置き碁設定 */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
+            置き碁
+          </span>
+          <select
+            value={handicap}
+            onChange={e => handleHandicapChange(Number(e.target.value))}
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all focus:outline-none"
+            style={{
+              backgroundColor: 'var(--color-card-solid)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text)',
+            }}
+          >
+            <option value={0}>なし</option>
+            {[2, 3, 4, 5, 6, 7, 8, 9].map(n => (
+              <option key={n} value={n}>{n}子局</option>
+            ))}
+          </select>
+          {handicap >= 2 && (
+            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              コミ 0.5目
+            </span>
+          )}
         </div>
 
         <GoBoard
