@@ -116,6 +116,28 @@ function convertToGameNode(
   let boardState = cloneBoard(parentBoard);
   let move = null;
 
+  // 置き石（AB: Add Black, AW: Add White）をルートノードで処理
+  if (isRoot) {
+    const addBlack = props.get('AB');
+    if (addBlack) {
+      for (const coord of addBlack) {
+        const pos = sgfToPos(coord);
+        if (pos && pos.x < size && pos.y < size) {
+          boardState[pos.y][pos.x] = 'black';
+        }
+      }
+    }
+    const addWhite = props.get('AW');
+    if (addWhite) {
+      for (const coord of addWhite) {
+        const pos = sgfToPos(coord);
+        if (pos && pos.x < size && pos.y < size) {
+          boardState[pos.y][pos.x] = 'white';
+        }
+      }
+    }
+  }
+
   // 黒の手
   const blackMove = props.get('B');
   if (blackMove && blackMove[0] !== undefined) {

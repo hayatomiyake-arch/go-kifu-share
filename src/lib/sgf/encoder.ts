@@ -1,4 +1,5 @@
 import { BoardSize, GameNode, GameRecord, Position } from '@/types/go';
+import { getHandicapPositions } from '@/lib/go/rules';
 
 /** 座標をSGF形式（a-s）に変換 */
 function posToSgf(pos: Position): string {
@@ -66,6 +67,16 @@ export function gameToSgf(game: GameRecord): string {
   }
   if (game.handicap > 0) {
     header += `HA[${game.handicap}]`;
+    // 置き石の位置をAB[]プロパティで出力
+    if (game.handicap >= 2) {
+      const positions = getHandicapPositions(game.boardSize, game.handicap);
+      if (positions.length > 0) {
+        header += 'AB';
+        for (const pos of positions) {
+          header += `[${posToSgf(pos)}]`;
+        }
+      }
+    }
   }
 
   header += `AP[GoReco:1.0]`; // アプリ名

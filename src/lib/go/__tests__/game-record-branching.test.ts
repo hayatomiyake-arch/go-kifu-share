@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createNewGame, addMove, getViewState, findNode, getPathToNode, removeChildNode } from '../game-tree';
 import { gameToSgf } from '../../sgf/encoder';
 import { parseSgf } from '../../sgf/parser';
+import { getHandicapPositions, placeHandicapStones, createEmptyBoard } from '../rules';
 import { BoardSize, GameRecord } from '@/types/go';
 
 /** ヘルパー: メインラインの手数を数える */
@@ -234,6 +235,98 @@ describe('SGFエンコード/デコード（分岐保持）', () => {
     // パース後のmove1ノードにも3つの子
     const pMove1 = parsed!.rootNode.children[0];
     expect(pMove1.children.length).toBe(3);
+  });
+});
+
+describe('置き碁（ハンディキャップ）', () => {
+  it('2子局: 右上と左下に黒石が配置される', () => {
+    const positions = getHandicapPositions(19, 2);
+    expect(positions.length).toBe(2);
+    expect(positions[0]).toEqual({ x: 15, y: 3 }); // 右上
+    expect(positions[1]).toEqual({ x: 3, y: 15 }); // 左下
+  });
+
+  it('4子局: 四隅の星に黒石が配置される', () => {
+    const positions = getHandicapPositions(19, 4);
+    expect(positions.length).toBe(4);
+  });
+
+  it('9子局: 全ての星に黒石が配置される', () => {
+    const positions = getHandicapPositions(19, 9);
+    expect(positions.length).toBe(9);
+  });
+
+  it('9路盤の5子局: 4隅 + 天元に配置される', () => {
+    const positions = getHandicapPositions(9, 5);
+    expect(positions.length).toBe(5);
+    // 天元（中央）が含まれる
+    expect(positions.some(p => p.x === 4 && p.y === 4)).toBe(true);
+  });
+
+  it('createNewGameで置き碁対局を作成すると、盤面に黒石が配置される', () => {
+    const game = createNewGame(19, '上手', '下手', 0.5, 4);
+    expect(game.handicap).toBe(4);
+
+    // ルートノードの盤面に黒石が4つ配置されている
+    let blackStones = 0;
+    for (let y = 0; y < 19; y++) {
+      for (let x = 0; x < 19; x++) {
+        if (game.rootNode.boardState[y][x] === 'black') blackStones++;
+      }
+    }
+    expect(blackStones).toBe(4);
+  });
+
+  it('置き碁対局では白番から始まる', () => {
+    const game = createNewGame(19, '上手', '下手', 0.5, 2);
+    const viewState = getViewState(game, game.rootNode.id);
+    expect(viewState!.nextColor).toBe('white');
+  });
+
+  it('通常対局では黒番から始まる', () => {
+    const game = createNewGame(19, 'A', 'B', 6.5, 0);
+    const viewState = getViewState(game, game.rootNode.id);
+    expect(viewState!.nextColor).toBe('black');
+  });
+
+  it('置き碁のSGFラウンドトリップ: AB[]プロパティが正しく出力・読み込みされる', () => {
+    const game = createNewGame(19, '上手', '下手', 0.5, 4);
+    // 白から2手打つ（置き石の位置を避ける）
+    let currentId = game.rootNode.id;
+    const r1 = addMove(game, currentId, { x: 4, y: 4 }, 'white');
+    const r2 = addMove(game, r1!.newNodeId, { x: 10, y: 10 }, 'black');
+
+    const sgf = gameToSgf(game);
+    expect(sgf).toContain('HA[4]');
+    expect(sgf).toContain('AB[');
+
+    const parsed = parseSgf(sgf);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.handicap).toBe(4);
+
+    // パース後の盤面に黒石が配置されている
+    let blackStones = 0;
+    for (let y = 0; y < 19; y++) {
+      for (let x = 0; x < 19; x++) {
+        if (parsed!.rootNode.boardState[y][x] === 'black') blackStones++;
+      }
+    }
+    expect(blackStones).toBe(4);
+  });
+
+  it('置き碁でも着手と取りが正常に動作する', () => {
+    const game = createNewGame(9, '上手', '下手', 0.5, 2);
+    // 2子局: 星に黒石がある状態で白から始まる
+    const viewState = getViewState(game, game.rootNode.id);
+    expect(viewState!.nextColor).toBe('white');
+
+    // 白の着手
+    const r1 = addMove(game, game.rootNode.id, { x: 4, y: 4 }, 'white');
+    expect(r1).not.toBeNull();
+
+    // 次は黒
+    const vs1 = getViewState(game, r1!.newNodeId);
+    expect(vs1!.nextColor).toBe('black');
   });
 });
 

@@ -1,5 +1,5 @@
 import { BoardSize, GameNode, GameRecord, GameViewState, IntersectionState, Move, Position, StoneColor } from '@/types/go';
-import { createEmptyBoard, placeStone, isKo, cloneBoard, oppositeColor } from './rules';
+import { createEmptyBoard, placeStone, isKo, cloneBoard, oppositeColor, placeHandicapStones } from './rules';
 
 let nodeIdCounter = 0;
 
@@ -17,11 +17,14 @@ export function createNewGame(
   komi = 6.5,
   handicap = 0
 ): GameRecord {
+  const emptyBoard = createEmptyBoard(boardSize);
+  const initialBoard = handicap >= 2 ? placeHandicapStones(emptyBoard, boardSize, handicap) : emptyBoard;
+
   const rootNode: GameNode = {
     id: generateNodeId(),
     move: null,
     children: [],
-    boardState: createEmptyBoard(boardSize),
+    boardState: initialBoard,
   };
 
   return {
