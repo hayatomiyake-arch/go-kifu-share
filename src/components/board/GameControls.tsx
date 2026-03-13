@@ -73,7 +73,7 @@ export default function GameControls({
             {nextColor === 'black' ? '黒' : '白'}の番
           </span>
           <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>
-            {moveNumber}手目
+            {moveNumber > 0 ? `${moveNumber}手まで` : '開始前'}
           </span>
         </div>
 
