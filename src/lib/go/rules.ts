@@ -159,39 +159,14 @@ export function getHandicapPositions(size: BoardSize, handicap: number): Positio
     { x: edge, y: edge },   // 左上
   ];
 
-  // 5子以上は辺の星も追加
-  if (size === 9) {
-    // 9路は5子で天元のみ追加
-    positions.push(
-      { x: center, y: center }, // 天元
-    );
-    // 6子以上は辺の星
-    positions.push(
-      { x: edge, y: center },   // 左辺
-      { x: far, y: center },    // 右辺
-    );
-    positions.push(
-      { x: center, y: edge },   // 上辺
-      { x: center, y: far },    // 下辺
-    );
-  } else {
-    // 13路・19路
-    // 5子は天元
-    positions.push(
-      { x: center, y: center }, // 天元
-    );
-    // 6子は左右辺
-    positions.push(
-      { x: edge, y: center },   // 左辺
-      { x: far, y: center },    // 右辺
-    );
-    // 8子は上下辺
-    positions.push(
-      { x: center, y: edge },   // 上辺
-      { x: center, y: far },    // 下辺
-    );
-    // 9子は天元（再度）
-  }
+  // 5子以上: 天元・辺の星を追加（全盤面サイズ共通）
+  positions.push(
+    { x: center, y: center }, // 天元
+    { x: edge, y: center },   // 左辺
+    { x: far, y: center },    // 右辺
+    { x: center, y: edge },   // 上辺
+    { x: center, y: far },    // 下辺
+  );
 
   // 5子の場合: 4隅 + 天元
   // 6子の場合: 4隅 + 左辺 + 右辺（天元なし）

@@ -27,9 +27,6 @@ export default function HomePage() {
     updateMetadata,
   } = useGameState();
 
-  // ハンディキャップ選択
-  const [handicap, setHandicap] = useState(0);
-
   // SGFダウンロード用メタデータダイアログ
   const [showSgfDialog, setShowSgfDialog] = useState(false);
   const [playerBlackInput, setPlayerBlackInput] = useState('');
@@ -52,30 +49,33 @@ export default function HomePage() {
     [placeStone]
   );
 
+  const confirmResetIfNeeded = useCallback(
+    (message: string): boolean => {
+      if (viewState.moveNumber > 0) {
+        return window.confirm(message);
+      }
+      return true;
+    },
+    [viewState.moveNumber]
+  );
+
   const handleBoardSizeChange = useCallback(
     (size: BoardSize) => {
       if (size === game.boardSize) return;
-      if (viewState.moveNumber > 0) {
-        const ok = window.confirm('盤面サイズを変更すると、現在の棋譜がリセットされます。よろしいですか？');
-        if (!ok) return;
-      }
-      newGame(size, game.playerBlack, game.playerWhite, game.komi, handicap);
+      if (!confirmResetIfNeeded('盤面サイズを変更すると、現在の棋譜がリセットされます。よろしいですか？')) return;
+      newGame(size, game.playerBlack, game.playerWhite, game.komi, game.handicap);
     },
-    [game.boardSize, game.playerBlack, game.playerWhite, game.komi, handicap, viewState.moveNumber, newGame]
+    [game.boardSize, game.playerBlack, game.playerWhite, game.komi, game.handicap, confirmResetIfNeeded, newGame]
   );
 
   const handleHandicapChange = useCallback(
     (newHandicap: number) => {
-      if (newHandicap === handicap) return;
-      if (viewState.moveNumber > 0) {
-        const ok = window.confirm('置き碁設定を変更すると、現在の棋譜がリセットされます。よろしいですか？');
-        if (!ok) return;
-      }
-      setHandicap(newHandicap);
+      if (newHandicap === game.handicap) return;
+      if (!confirmResetIfNeeded('置き碁設定を変更すると、現在の棋譜がリセットされます。よろしいですか？')) return;
       const komi = newHandicap >= 2 ? 0.5 : 6.5;
       newGame(game.boardSize, game.playerBlack, game.playerWhite, komi, newHandicap);
     },
-    [handicap, viewState.moveNumber, game.boardSize, game.playerBlack, game.playerWhite, newGame]
+    [game.handicap, game.boardSize, game.playerBlack, game.playerWhite, confirmResetIfNeeded, newGame]
   );
 
   // 共有URL発行（ダイアログなし、即座に発行）
@@ -197,7 +197,7 @@ export default function HomePage() {
             置き碁
           </span>
           <select
-            value={handicap}
+            value={game.handicap}
             onChange={e => handleHandicapChange(Number(e.target.value))}
             className="px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all focus:outline-none"
             style={{
@@ -211,7 +211,7 @@ export default function HomePage() {
               <option key={n} value={n}>{n}子局</option>
             ))}
           </select>
-          {handicap >= 2 && (
+          {game.handicap >= 2 && (
             <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               コミ 0.5目
             </span>
