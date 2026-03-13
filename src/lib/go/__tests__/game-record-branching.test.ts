@@ -328,6 +328,52 @@ describe('置き碁（ハンディキャップ）', () => {
     const vs1 = getViewState(game, r1!.newNodeId);
     expect(vs1!.nextColor).toBe('black');
   });
+
+  it('3子局で8手打つ: 白→黒→白→...の順序で正しく記録される', () => {
+    const game = createNewGame(19, '上手', '下手', 0.5, 3);
+
+    // 初手は白番であること
+    const vs0 = getViewState(game, game.rootNode.id)!;
+    expect(vs0.nextColor).toBe('white');
+    expect(vs0.moveNumber).toBe(0);
+
+    // nextColorを使って8手打つ（UIと同じ動作をシミュレート）
+    const positions = [
+      { x: 3, y: 3 }, { x: 9, y: 9 },
+      { x: 3, y: 9 }, { x: 9, y: 3 },
+      { x: 5, y: 5 }, { x: 13, y: 13 },
+      { x: 5, y: 13 }, { x: 13, y: 5 },
+    ];
+    const expectedColors: Array<'white' | 'black'> = [
+      'white', 'black', 'white', 'black', 'white', 'black', 'white', 'black',
+    ];
+
+    let currentNodeId = game.rootNode.id;
+    for (let i = 0; i < 8; i++) {
+      const vs = getViewState(game, currentNodeId)!;
+      expect(vs.nextColor).toBe(expectedColors[i]);
+
+      const result = addMove(game, currentNodeId, positions[i], vs.nextColor);
+      expect(result).not.toBeNull();
+
+      // 記録された手の色が正しいこと
+      const node = findNode(game.rootNode, result!.newNodeId)!;
+      expect(node.move!.color).toBe(expectedColors[i]);
+
+      currentNodeId = result!.newNodeId;
+    }
+
+    // 8手後は白番であること
+    const vs8 = getViewState(game, currentNodeId)!;
+    expect(vs8.nextColor).toBe('white');
+    expect(vs8.moveNumber).toBe(8);
+
+    // SGFでも色が正しいこと
+    const sgf = gameToSgf(game);
+    expect(sgf).toContain('HA[3]');
+    // 初手がW（白）であること
+    expect(sgf).toMatch(/AB\[.*\].*W\[/);
+  });
 });
 
 describe('削除と復元', () => {
