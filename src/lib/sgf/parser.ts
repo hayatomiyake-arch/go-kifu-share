@@ -1,5 +1,5 @@
 import { BoardSize, GameNode, GameRecord, IntersectionState, Position, StoneColor } from '@/types/go';
-import { createEmptyBoard, placeStone, cloneBoard } from '@/lib/go/rules';
+import { createEmptyBoard, placeStone, cloneBoard, isOnBoard } from '@/lib/go/rules';
 
 /** SGF座標をPositionに変換 */
 function sgfToPos(sgf: string): Position | null {
@@ -118,21 +118,14 @@ function convertToGameNode(
 
   // 置き石（AB: Add Black, AW: Add White）をルートノードで処理
   if (isRoot) {
-    const addBlack = props.get('AB');
-    if (addBlack) {
-      for (const coord of addBlack) {
-        const pos = sgfToPos(coord);
-        if (pos && pos.x < size && pos.y < size) {
-          boardState[pos.y][pos.x] = 'black';
-        }
-      }
-    }
-    const addWhite = props.get('AW');
-    if (addWhite) {
-      for (const coord of addWhite) {
-        const pos = sgfToPos(coord);
-        if (pos && pos.x < size && pos.y < size) {
-          boardState[pos.y][pos.x] = 'white';
+    for (const [prop, color] of [['AB', 'black'], ['AW', 'white']] as const) {
+      const coords = props.get(prop);
+      if (coords) {
+        for (const coord of coords) {
+          const pos = sgfToPos(coord);
+          if (pos && isOnBoard(pos, size)) {
+            boardState[pos.y][pos.x] = color;
+          }
         }
       }
     }
