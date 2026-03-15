@@ -2,8 +2,9 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    # 毎週月曜 9:00 UTC（日本時間 月曜 18:00）に実行
-    - cron: '0 9 * * 1'
+    # 週2回（月曜・木曜）9:00 UTC（日本時間 18:00）に実行
+    # 最大間隔4日なので、7日停止ルールを余裕を持って回避
+    - cron: '0 9 * * 1,4'
   workflow_dispatch: # 手動実行も可能
 
 jobs:
